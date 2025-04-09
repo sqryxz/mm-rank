@@ -8,7 +8,7 @@ from storage import load_data, save_data
 app = Flask(__name__)
 
 # Configure XRPL client
-JSON_RPC_URL = "https://livenet.xrpl.org:51234"
+JSON_RPC_URL = "https://s2.ripple.com:51234"
 client = JsonRpcClient(JSON_RPC_URL)
 
 # PFT token issuer address
@@ -92,4 +92,4 @@ def remove_address(address):
     return jsonify({'success': False, 'error': 'Address not found'}), 404
 
 if __name__ == '__main__':
-    app.run(debug=True) 
+    app.run(debug=True, port=5002) 

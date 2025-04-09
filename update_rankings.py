@@ -6,7 +6,7 @@ from xrpl.clients import JsonRpcClient
 from xrpl.models.requests import AccountLines
 
 # Configure XRPL client
-JSON_RPC_URL = "https://livenet.xrpl.org:51234"
+JSON_RPC_URL = "https://s2.ripple.com:51234"
 client = JsonRpcClient(JSON_RPC_URL)
 
 # PFT token issuer address
