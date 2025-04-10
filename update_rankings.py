@@ -106,14 +106,11 @@ def format_discord_message(balances, previous_balances):
         address = balance['address']
         amount = f"{balance['balance']:,.2f}"
         
-        # Calculate individual percentage of total issuance
-        individual_percent = (balance['balance'] / total_issuance * 100) if total_issuance > 0 else 0
-        
         # Calculate change indicator
         prev_balance = previous_balances.get(address, 0)
         change_indicator = format_balance_change(balance['balance'], prev_balance)
         
-        message += f"{i}. **{nickname}** (`{address[:6]}...{address[-4:]}`) - {amount} PFT ({individual_percent:.1f}%) {change_indicator}\n"
+        message += f"{i}. **{nickname}** (`{address[:6]}...{address[-4:]}`) - {amount} PFT {change_indicator}\n"
     
     return {
         "content": message,
