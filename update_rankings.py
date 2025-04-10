@@ -1,9 +1,10 @@
 import os
 import json
 import requests
-from datetime import datetime
+from datetime import datetime, timezone
 from xrpl.clients import JsonRpcClient
 from xrpl.models.requests import AccountLines
+from pft_data import load_issuance_data
 
 # Configure XRPL client
 JSON_RPC_URL = "https://s2.ripple.com:51234"
@@ -62,21 +63,42 @@ def format_balance_change(current, previous):
     return f"⬇️ {change:,.2f} ({percentage:.1f}%)"
 
 def format_discord_message(balances, previous_balances):
-    current_time = datetime.utcnow().strftime("%Y-%m-%d %H:%M UTC")
+    current_time = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
+    
+    # Get total PFT issuance
+    total_issuance = load_issuance_data()
+    if total_issuance == 0:
+        total_issuance = 13818.00  # Fallback to known issuance if data not available
     
     # Calculate totals
     total_current = sum(b['balance'] for b in balances)
     total_previous = sum(previous_balances.values())
     
+    # Calculate change in holdings as percentage of total issuance
+    change_in_holdings = total_current - total_previous
+    change_as_percent_of_issuance = (change_in_holdings / total_issuance * 100) if total_issuance > 0 else 0
+    
     # Create the message content
     message = f"🏆 **PFT Holdings Leaderboard** - {current_time}\n\n"
     
-    # Add total balance and change
-    message += f"📊 **Total PFT**: {total_current:,.2f}"
+    # Add total issuance first
+    message += f"💫 **Total PFT Issued**: {total_issuance:,.2f}\n"
+    
+    # Add total holdings and change
+    message += f"📊 **Total PFT Held**: {total_current:,.2f}"
     if total_previous > 0:
         total_change = format_balance_change(total_current, total_previous)
-        message += f" {total_change}\n"
+        message += f" {total_change}"
     message += "\n"
+    
+    # Add change in holdings as percentage of total issuance
+    message += f"📈 **Change in PFT Held**: "
+    if change_in_holdings == 0:
+        message += "No change"
+    else:
+        change_symbol = "⬆️" if change_in_holdings > 0 else "⬇️"
+        message += f"{change_symbol} {abs(change_as_percent_of_issuance):.1f}% of total issuance"
+    message += "\n\n"
     
     # Add top holders
     for i, balance in enumerate(balances[:10], 1):
@@ -84,11 +106,14 @@ def format_discord_message(balances, previous_balances):
         address = balance['address']
         amount = f"{balance['balance']:,.2f}"
         
+        # Calculate individual percentage of total issuance
+        individual_percent = (balance['balance'] / total_issuance * 100) if total_issuance > 0 else 0
+        
         # Calculate change indicator
         prev_balance = previous_balances.get(address, 0)
         change_indicator = format_balance_change(balance['balance'], prev_balance)
         
-        message += f"{i}. **{nickname}** (`{address[:6]}...{address[-4:]}`) - {amount} PFT {change_indicator}\n"
+        message += f"{i}. **{nickname}** (`{address[:6]}...{address[-4:]}`) - {amount} PFT ({individual_percent:.1f}%) {change_indicator}\n"
     
     return {
         "content": message,
@@ -97,11 +122,6 @@ def format_discord_message(balances, previous_balances):
     }
 
 def main():
-    # Get Discord webhook URL from environment variable
-    webhook_url = os.getenv('DISCORD_WEBHOOK_URL')
-    if not webhook_url:
-        raise ValueError("Discord webhook URL not found in environment variables")
-
     # Load tracked addresses and previous balances
     tracked_addresses = load_data()
     previous_balances = load_previous_balances()
@@ -122,17 +142,25 @@ def main():
     # Sort by balance
     balances.sort(key=lambda x: x['balance'], reverse=True)
     
-    # Format and send Discord message
+    # Format message
     message = format_discord_message(balances, previous_balances)
-    response = requests.post(webhook_url, json=message)
     
-    if response.status_code != 204:
-        raise Exception(f"Failed to send Discord message: {response.status_code}")
+    # Get Discord webhook URL from environment variable
+    webhook_url = os.getenv('DISCORD_WEBHOOK_URL')
+    
+    # If webhook URL exists, send to Discord
+    if webhook_url:
+        response = requests.post(webhook_url, json=message)
+        if response.status_code != 204:
+            raise Exception(f"Failed to send Discord message: {response.status_code}")
+        print("Successfully updated rankings and sent Discord notification")
+    else:
+        # If no webhook URL, print to console
+        print("\nRankings Report (Console Output):")
+        print(message['content'])
     
     # Save current balances as previous for next run
     save_previous_balances(current_balances)
-    
-    print("Successfully updated rankings and sent Discord notification")
 
 if __name__ == '__main__':
     main() 
