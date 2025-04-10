@@ -1,13 +1,15 @@
-name: PFT Issuance Tracker
+name: PFT Tracker and Rankings
 
 on:
   schedule:
-    - cron: '0 0,12 * * *'  # Runs at 00:00 and 12:00 UTC
+    - cron: '0 */12 * * *'  # Runs every 12 hours
   workflow_dispatch:  # Allows manual trigger
 
 jobs:
-  track-pft:
+  track-pft-and-rankings:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     
     steps:
     - uses: actions/checkout@v3
@@ -17,7 +19,7 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
-        python-version: '3.x'
+        python-version: '3.11'
 
     - name: Install dependencies
       run: |
@@ -26,12 +28,19 @@ jobs:
 
     - name: Run PFT tracker
       run: |
-        python pft_tracker.py > pft_report.txt
+        python3 pft_tracker.py > pft_report.txt
+        
+    - name: Update rankings
+      env:
+        DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+      run: python3 update_rankings.py
 
-    - name: Update report in repository
+    - name: Configure Git
       run: |
         git config --local user.email "github-actions[bot]@users.noreply.github.com"
         git config --local user.name "github-actions[bot]"
-        git add pft_report.txt
-        git commit -m "Update PFT issuance report" || echo "No changes to commit"
-        git push 
+        
+    - name: Commit and push changes
+      run: |
+        git add pft_report.txt previous_balances.json
+        git diff --quiet && git diff --staged --quiet || (git commit -m "Update PFT tracking data and rankings" && git push) 
