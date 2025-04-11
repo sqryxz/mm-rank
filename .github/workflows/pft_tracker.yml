@@ -2,7 +2,7 @@ name: PFT Tracker and Rankings
 
 on:
   schedule:
-    - cron: '0 */12 * * *'  # Runs every 12 hours
+    - cron: '0 1,13 * * *'  # Runs at 1 AM and 1 PM UTC (9 AM and 9 PM GMT+8)
   workflow_dispatch:  # Allows manual trigger
 
 jobs:
