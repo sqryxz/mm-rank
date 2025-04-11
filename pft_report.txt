@@ -1,8 +1,8 @@
 # PFT Issuance Report
 
-Report generated at: 2025-04-10 15:20:03 UTC
+Report generated at: 2025-04-10 15:36:43 UTC
 
-Period: 2025-04-09 15:20:02 to 2025-04-10 15:20:03
+Period: 2025-04-09 15:36:43 to 2025-04-10 15:36:43
 
 ## Summary
 Total PFT Issued (this period): 0.00 PFT
