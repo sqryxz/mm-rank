@@ -15,6 +15,7 @@ PFT_ISSUER = "rnQUEEg8yyjrwk9FhyXpKavHyCRJM9BDMW"
 
 # File to store balance history
 BALANCE_HISTORY_FILE = 'balance_history.json'
+PREVIOUS_BALANCES_FILE = 'previous_balances.json'
 
 def load_data():
     try:
@@ -22,6 +23,21 @@ def load_data():
             return json.load(f)
     except FileNotFoundError:
         return {}
+
+def load_previous_balances():
+    try:
+        with open(PREVIOUS_BALANCES_FILE, 'r') as f:
+            return json.load(f)
+    except (FileNotFoundError, json.JSONDecodeError):
+        return {
+            "last_update": None,
+            "total_balance": 0,
+            "balances": {}
+        }
+
+def save_previous_balances(data):
+    with open(PREVIOUS_BALANCES_FILE, 'w') as f:
+        json.dump(data, f, indent=2)
 
 def load_balance_history():
     try:
@@ -186,9 +202,20 @@ def format_discord_message(balances, balance_history):
     # Get PFT issued in last 12 hours from actual transactions
     recent_issuance = get_issuer_payments_12h()
     
-    # Calculate totals for current and 12 hours ago
+    # Load previous balances
+    previous_balances = load_previous_balances()
+    previous_total = previous_balances['total_balance']
+    
+    # Calculate current total
     total_current = sum(b['balance'] for b in balances)
     total_12h_ago = sum(get_balance_12h_ago(b['address'], balance_history) for b in balances)
+    
+    # Calculate balance changes since last update
+    balance_increase = total_current - previous_total if previous_total > 0 else 0
+    balance_increase_percentage = (balance_increase / previous_total * 100) if previous_total > 0 else 0
+    
+    # Calculate percentage of balance increase relative to new issuance
+    issuance_percentage = (balance_increase / recent_issuance * 100) if recent_issuance > 0 else 0
     
     # Create the message content
     message = f"🏆 **PFT Holdings Leaderboard** - {current_time_str}\n\n"
@@ -212,10 +239,18 @@ def format_discord_message(balances, balance_history):
         change_symbol = "⬆️" if change > 0 else "⬇️"
         change_percentage = (abs(change) / total_current * 100) if total_current > 0 else 0
         message += f"{change_symbol} {change_percentage:.1f}% of tracked holdings"
-    message += "\n\n"
+    message += "\n"
     
-    # Add top holders
-    for i, balance in enumerate(balances[:10], 1):
+    # Add balance changes since last update
+    if previous_total > 0:
+        message += f"\n📊 **Changes Since Last Update**:\n"
+        message += f"💰 Total Balance Increase: {balance_increase:,.2f} PFT (+{balance_increase_percentage:.1f}%)\n"
+        message += f"📈 Percentage of New Issuance: {issuance_percentage:.1f}%\n"
+    
+    message += "\n"
+    
+    # Add all holders (no limit)
+    for i, balance in enumerate(balances, 1):
         nickname = balance['nickname'] or 'Anonymous'
         address = balance['address']
         amount = f"{balance['balance']:,.2f}"
@@ -224,7 +259,18 @@ def format_discord_message(balances, balance_history):
         prev_balance = get_balance_12h_ago(address, balance_history)
         change_indicator = format_balance_change(balance['balance'], prev_balance)
         
-        message += f"{i}. **{nickname}** (`{address[:6]}...{address[-4:]}`) - {amount} PFT {change_indicator}\n"
+        # Add change since last update if available
+        last_balance = previous_balances['balances'].get(address, 0)
+        if last_balance > 0:
+            balance_change = balance['balance'] - last_balance
+            if balance_change != 0:
+                change_percent = (balance_change / last_balance * 100)
+                change_str = f" (Δ{'+' if balance_change > 0 else ''}{balance_change:,.2f}, {change_percent:+.1f}% since last update)"
+                message += f"{i}. **{nickname}** (`{address[:6]}...{address[-4:]}`) - {amount} PFT {change_indicator}{change_str}\n"
+            else:
+                message += f"{i}. **{nickname}** (`{address[:6]}...{address[-4:]}`) - {amount} PFT {change_indicator}\n"
+        else:
+            message += f"{i}. **{nickname}** (`{address[:6]}...{address[-4:]}`) - {amount} PFT {change_indicator}\n"
     
     return {
         "content": message,
@@ -288,6 +334,14 @@ def main():
     
     # Save updated balance history
     save_balance_history(balance_history)
+    
+    # Save current balances as previous balances for next update
+    previous_balances = {
+        "last_update": current_time,
+        "total_balance": sum(b['balance'] for b in balances),
+        "balances": {b['address']: b['balance'] for b in balances}
+    }
+    save_previous_balances(previous_balances)
 
 if __name__ == '__main__':
     main() 
