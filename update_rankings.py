@@ -241,10 +241,8 @@ def format_discord_message(balances, balance_history):
         message += f"{change_symbol} {change_percentage:.1f}% of tracked holdings"
     message += "\n"
     
-    # Add balance changes since last update
+    # Add percentage of new issuance
     if previous_total > 0:
-        message += f"\n📊 **Changes Since Last Update**:\n"
-        message += f"💰 Total Balance Increase: {balance_increase:,.2f} PFT (+{balance_increase_percentage:.1f}%)\n"
         message += f"📈 Percentage of New Issuance: {issuance_percentage:.1f}%\n"
     
     message += "\n"
@@ -259,18 +257,7 @@ def format_discord_message(balances, balance_history):
         prev_balance = get_balance_12h_ago(address, balance_history)
         change_indicator = format_balance_change(balance['balance'], prev_balance)
         
-        # Add change since last update if available
-        last_balance = previous_balances['balances'].get(address, 0)
-        if last_balance > 0:
-            balance_change = balance['balance'] - last_balance
-            if balance_change != 0:
-                change_percent = (balance_change / last_balance * 100)
-                change_str = f" (Δ{'+' if balance_change > 0 else ''}{balance_change:,.2f}, {change_percent:+.1f}% since last update)"
-                message += f"{i}. **{nickname}** (`{address[:6]}...{address[-4:]}`) - {amount} PFT {change_indicator}{change_str}\n"
-            else:
-                message += f"{i}. **{nickname}** (`{address[:6]}...{address[-4:]}`) - {amount} PFT {change_indicator}\n"
-        else:
-            message += f"{i}. **{nickname}** (`{address[:6]}...{address[-4:]}`) - {amount} PFT {change_indicator}\n"
+        message += f"{i}. **{nickname}** (`{address[:6]}...{address[-4:]}`) - {amount} PFT {change_indicator}\n"
     
     return {
         "content": message,
