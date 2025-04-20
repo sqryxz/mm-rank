@@ -12,7 +12,7 @@ JSON_RPC_URL = "https://s2.ripple.com:51234"
 client = JsonRpcClient(JSON_RPC_URL)
 
 # PFT token issuer address
-PFT_ISSUER = "rnQUEEg8yyjrwk9FhyXpKavHyCRJM9BDMW"
+PFT_ISSUER = "r4yc85M1hwsegVGZ1pawpZPwj65SVs8PzD"
 
 # Load tracked addresses from storage
 TRACKED_ADDRESSES = load_data()
