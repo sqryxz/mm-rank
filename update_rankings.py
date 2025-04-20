@@ -143,17 +143,6 @@ def get_issuer_payments_12h():
                         amount = float(tx["tx"]["Amount"]["value"])
                         total_issued += amount
                         print(f"Found PFT payment: {amount}")
-                
-                elif tx_type == "TrustSet":
-                    if "LimitAmount" in tx["tx"]:
-                        limit = tx["tx"]["LimitAmount"]
-                        if (isinstance(limit, dict) and 
-                            limit.get("currency") == "PFT" and
-                            limit.get("issuer") == PFT_ISSUER):
-                            
-                            trust_amount = float(limit["value"])
-                            total_issued += trust_amount
-                            print(f"Found PFT trust set: {trust_amount}")
         
         print(f"Total PFT issued from transactions: {total_issued}")
         return total_issued
