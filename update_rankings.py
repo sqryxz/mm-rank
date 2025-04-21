@@ -108,26 +108,23 @@ def get_rembrancer_balance_change():
         print(f"Error getting Rembrancer balance change: {str(e)}")
         return 0
 
-def get_balance_12h_ago(address, history):
-    current_time = datetime.now(timezone.utc)
-    twelve_hours_ago = current_time - timedelta(hours=12)
-    
+def get_previous_run_balance(address, history):
+    """Get the balance from the previous run of the script for the given address"""
     # Get address history
     address_history = history.get(address, [])
     
-    # Find the closest balance to 12 hours ago
-    closest_balance = 0
-    closest_time_diff = timedelta(days=365)  # Large initial value
+    if len(address_history) <= 1:
+        # If there's only one entry (the current one) or no entries, return 0
+        return 0
     
-    for entry in address_history:
-        entry_time = datetime.fromisoformat(entry['timestamp'])
-        time_diff = abs(entry_time - twelve_hours_ago)
-        
-        if time_diff < closest_time_diff and entry_time <= twelve_hours_ago:
-            closest_time_diff = time_diff
-            closest_balance = entry['balance']
+    # Return the second most recent balance (latest is current run, second latest is previous run)
+    # Sort by timestamp in descending order to ensure we get the most recent ones first
+    sorted_history = sorted(address_history, key=lambda x: x['timestamp'], reverse=True)
     
-    return closest_balance
+    # The second entry (index 1) will be the previous run's balance
+    if len(sorted_history) > 1:
+        return sorted_history[1]['balance']
+    return 0
 
 def format_balance_change(current, previous):
     if previous == 0:
@@ -157,14 +154,14 @@ def format_discord_message(balances, balance_history):
     
     # Calculate current total (excluding Remembrancer)
     total_current = sum(b['balance'] for b in balances if b['address'] != REMBRANCER_ADDRESS)
-    total_12h_ago = sum(get_balance_12h_ago(b['address'], balance_history) for b in balances if b['address'] != REMBRANCER_ADDRESS)
+    total_previous_run = sum(get_previous_run_balance(b['address'], balance_history) for b in balances if b['address'] != REMBRANCER_ADDRESS)
     
     # Calculate balance changes since last update
     balance_increase = total_current - previous_total if previous_total > 0 else 0
     balance_increase_percentage = (balance_increase / previous_total * 100) if previous_total > 0 else 0
     
     # Calculate percentage of balance increase relative to new issuance
-    change_in_total_held = total_current - total_12h_ago if total_12h_ago > 0 else 0
+    change_in_total_held = total_current - total_previous_run if total_previous_run > 0 else 0
     issuance_percentage = (change_in_total_held / recent_issuance * 100) if recent_issuance > 0 else 0
     
     # Create the message content
@@ -175,12 +172,10 @@ def format_discord_message(balances, balance_history):
     message += f"📊 **Total PFT Held**: {total_current:,.2f}"
     
     # Add total holdings change
-    if total_12h_ago > 0:
-        total_change = format_balance_change(total_current, total_12h_ago)
+    if total_previous_run > 0:
+        total_change = format_balance_change(total_current, total_previous_run)
         message += f" {total_change}"
     message += "\n"
-    
-    # Remove the "Change in PFT Held (12h)" metric
     
     # Add percentage of new issuance
     if previous_total > 0:
@@ -202,8 +197,8 @@ def format_discord_message(balances, balance_history):
         address = balance['address']
         amount = f"{balance['balance']:,.2f}"
         
-        # Calculate change indicator using 12h ago balance
-        prev_balance = get_balance_12h_ago(address, balance_history)
+        # Calculate change indicator using previous run balance
+        prev_balance = get_previous_run_balance(address, balance_history)
         change_indicator = format_balance_change(balance['balance'], prev_balance)
         
         message += f"{i}. **{nickname}** (`{address[:6]}...{address[-4:]}`) - {amount} PFT {change_indicator}\n"
