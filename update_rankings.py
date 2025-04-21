@@ -12,6 +12,8 @@ client = JsonRpcClient(JSON_RPC_URL)
 
 # PFT token issuer address
 PFT_ISSUER = "rnQUEEg8yyjrwk9FhyXpKavHyCRJM9BDMW"
+# Rembrancer address for tracking PFT issuance
+REMBRANCER_ADDRESS = "r4yc85M1hwsegVGZ1pawpZPwj65SVs8PzD"
 
 # File to store balance history
 BALANCE_HISTORY_FILE = 'balance_history.json'
@@ -75,80 +77,34 @@ def get_pft_balance(address):
         print(f"Error getting balance for {address}: {str(e)}")
         return 0
 
-def get_issuer_payments_12h():
-    """Get total PFT issued in the last 12 hours by looking at transactions from the issuer"""
+def get_rembrancer_balance_change():
+    """Get total PFT issued by looking at the balance change in the Rembrancer address"""
     try:
-        # Get current ledger info
-        ledger_response = requests.post(JSON_RPC_URL, json={
-            "method": "ledger",
-            "params": [
-                {
-                    "ledger_index": "validated",
-                    "accounts": False,
-                    "full": False,
-                    "transactions": False,
-                    "expand": False,
-                    "owner_funds": False
-                }
-            ]
-        }).json()
+        # Get current balance
+        current_balance = get_pft_balance(REMBRANCER_ADDRESS)
         
-        current_ledger = int(ledger_response["result"]["ledger_index"])
-        # Estimate ledger from 12 hours ago (assuming ~4s per ledger)
-        ledgers_per_12h = int((12 * 60 * 60) / 4)  # ~10800 ledgers
-        ledger_12h_ago = current_ledger - ledgers_per_12h
+        # Load balance history
+        balance_history = load_balance_history()
+        rembrancer_history = balance_history.get(REMBRANCER_ADDRESS, [])
         
-        print(f"Current ledger: {current_ledger}")
-        print(f"Estimated ledger 12h ago: {ledger_12h_ago}")
+        if not rembrancer_history:
+            print(f"No history found for Rembrancer address, returning current balance: {current_balance}")
+            return current_balance
         
-        # Get transactions
-        tx_response = requests.post(JSON_RPC_URL, json={
-            "method": "account_tx",
-            "params": [
-                {
-                    "account": PFT_ISSUER,
-                    "ledger_index_min": ledger_12h_ago,
-                    "ledger_index_max": current_ledger,
-                    "binary": False,
-                    "forward": False,
-                    "limit": 400
-                }
-            ]
-        }).json()
-
-        total_issued = 0
+        # Get the earliest balance in our history
+        earliest_balance = rembrancer_history[0]['balance']
         
-        if "result" in tx_response and "transactions" in tx_response["result"]:
-            print(f"Found {len(tx_response['result']['transactions'])} transactions")
-            
-            for tx in tx_response["result"]["transactions"]:
-                if "tx" not in tx or "TransactionType" not in tx["tx"]:
-                    continue
-                    
-                tx_type = tx["tx"]["TransactionType"]
-                if tx_type not in ["Payment", "TrustSet"]:
-                    continue
-                    
-                if "meta" not in tx or "TransactionResult" not in tx["meta"] or tx["meta"]["TransactionResult"] != "tesSUCCESS":
-                    continue
-                
-                print(f"Processing {tx_type} transaction")
-                
-                if tx_type == "Payment":
-                    if ("Amount" in tx["tx"] and 
-                        isinstance(tx["tx"]["Amount"], dict) and
-                        tx["tx"]["Amount"].get("currency") == "PFT" and
-                        tx["tx"]["Amount"].get("issuer") == PFT_ISSUER):
-                        
-                        amount = float(tx["tx"]["Amount"]["value"])
-                        total_issued += amount
-                        print(f"Found PFT payment: {amount}")
+        # Calculate the change
+        balance_change = current_balance - earliest_balance
         
-        print(f"Total PFT issued from transactions: {total_issued}")
-        return total_issued
+        print(f"Rembrancer current balance: {current_balance}")
+        print(f"Rembrancer earliest recorded balance: {earliest_balance}")
+        print(f"Total PFT issued (based on Rembrancer balance change): {balance_change}")
+        
+        return balance_change
         
     except Exception as e:
-        print(f"Error getting issuer payments: {str(e)}")
+        print(f"Error getting Rembrancer balance change: {str(e)}")
         return 0
 
 def get_balance_12h_ago(address, history):
@@ -188,8 +144,8 @@ def format_discord_message(balances, balance_history):
     current_time = datetime.now(timezone.utc)
     current_time_str = current_time.strftime("%Y-%m-%d %H:%M UTC")
     
-    # Get PFT issued in last 12 hours from actual transactions
-    recent_issuance = get_issuer_payments_12h()
+    # Get PFT issued based on Rembrancer balance change
+    recent_issuance = get_rembrancer_balance_change()
     
     # Load previous balances
     previous_balances = load_previous_balances()
@@ -204,13 +160,14 @@ def format_discord_message(balances, balance_history):
     balance_increase_percentage = (balance_increase / previous_total * 100) if previous_total > 0 else 0
     
     # Calculate percentage of balance increase relative to new issuance
-    issuance_percentage = (balance_increase / recent_issuance * 100) if recent_issuance > 0 else 0
+    change_in_total_held = total_current - total_12h_ago if total_12h_ago > 0 else 0
+    issuance_percentage = (change_in_total_held / recent_issuance * 100) if recent_issuance > 0 else 0
     
     # Create the message content
     message = f"🏆 **PFT Holdings Leaderboard** - {current_time_str}\n\n"
     
     # Add issuance information
-    message += f"🔄 **PFT Issued (Last 12h)**: {recent_issuance:,.2f}\n"
+    message += f"🔄 **PFT Issued**: {recent_issuance:,.2f}\n"
     message += f"📊 **Total PFT Held**: {total_current:,.2f}"
     
     # Add total holdings change
@@ -219,16 +176,7 @@ def format_discord_message(balances, balance_history):
         message += f" {total_change}"
     message += "\n"
     
-    # Add change in holdings as percentage of total tracked
-    message += f"📈 **Change in PFT Held (12h)**: "
-    if total_current == total_12h_ago:
-        message += "No change"
-    else:
-        change = total_current - total_12h_ago
-        change_symbol = "⬆️" if change > 0 else "⬇️"
-        change_percentage = (abs(change) / total_current * 100) if total_current > 0 else 0
-        message += f"{change_symbol} {change_percentage:.1f}% of tracked holdings"
-    message += "\n"
+    # Remove the "Change in PFT Held (12h)" metric
     
     # Add percentage of new issuance
     if previous_total > 0:
