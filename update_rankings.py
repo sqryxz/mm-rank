@@ -89,7 +89,7 @@ def get_rembrancer_balance_change():
         
         if not rembrancer_history:
             print(f"No history found for Rembrancer address, returning current balance: {current_balance}")
-            return current_balance
+            return abs(current_balance)
         
         # Get the earliest balance in our history
         earliest_balance = rembrancer_history[0]['balance']
@@ -101,7 +101,8 @@ def get_rembrancer_balance_change():
         print(f"Rembrancer earliest recorded balance: {earliest_balance}")
         print(f"Total PFT issued (based on Rembrancer balance change): {balance_change}")
         
-        return balance_change
+        # Return absolute value of balance change
+        return abs(balance_change)
         
     except Exception as e:
         print(f"Error getting Rembrancer balance change: {str(e)}")
@@ -154,9 +155,9 @@ def format_discord_message(balances, balance_history):
     previous_balances = load_previous_balances()
     previous_total = previous_balances['total_balance']
     
-    # Calculate current total
-    total_current = sum(b['balance'] for b in balances)
-    total_12h_ago = sum(get_balance_12h_ago(b['address'], balance_history) for b in balances)
+    # Calculate current total (excluding Remembrancer)
+    total_current = sum(b['balance'] for b in balances if b['address'] != REMBRANCER_ADDRESS)
+    total_12h_ago = sum(get_balance_12h_ago(b['address'], balance_history) for b in balances if b['address'] != REMBRANCER_ADDRESS)
     
     # Calculate balance changes since last update
     balance_increase = total_current - previous_total if previous_total > 0 else 0
