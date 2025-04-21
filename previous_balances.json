@@ -1,17 +1,17 @@
 {
-  "last_update": "2025-04-20T13:28:07.693794+00:00",
-  "total_balance": 718048.0,
+  "last_update": "2025-04-21T02:42:17.436837+00:00",
+  "total_balance": 0,
   "balances": {
-    "rPLpK9KKmjYzPQ8Faem7BRwfpQfCe9zrHS": 203162.0,
-    "rNTuZK66KQfWiwwBucvjXsonf5iD1BQJyH": 86871.0,
-    "rs1yY1qVJ4ddvPXQs86EYW1HC3QdWu7NFo": 72882.0,
-    "rMh3gsTKvLEpiucuxdkTybGE6A2tv9CLHE": 69114.0,
-    "rLvH7pxCCee7kFJo2Cn6NQy8GS33RHXk3U": 61649.0,
-    "rMm27Xh1JzGL4evVS1ZB1H25JpJapodSL1": 59385.0,
-    "rwonaUde5Vaa8mqnhqEgA29gcCfrv7qS9p": 50964.0,
-    "rGVzFTK1H9iNo3C2MDyx6M6K4tfs4PocPA": 32589.0,
-    "rpo5tVeCqigav9ZBpmPvYWeSBExSbYAK3c": 32382.0,
-    "rPWD8aoBvP55T6mPSwxSPC52J2eN14PoHe": 29307.0,
-    "rKDYJt9gee8dGVadu6kb3vdBVTdiQRbcHP": 19743.0
+    "rPLpK9KKmjYzPQ8Faem7BRwfpQfCe9zrHS": 0,
+    "rNTuZK66KQfWiwwBucvjXsonf5iD1BQJyH": 0,
+    "rMh3gsTKvLEpiucuxdkTybGE6A2tv9CLHE": 0,
+    "rLvH7pxCCee7kFJo2Cn6NQy8GS33RHXk3U": 0,
+    "rs1yY1qVJ4ddvPXQs86EYW1HC3QdWu7NFo": 0,
+    "rwonaUde5Vaa8mqnhqEgA29gcCfrv7qS9p": 0,
+    "rpo5tVeCqigav9ZBpmPvYWeSBExSbYAK3c": 0,
+    "rPWD8aoBvP55T6mPSwxSPC52J2eN14PoHe": 0,
+    "rGVzFTK1H9iNo3C2MDyx6M6K4tfs4PocPA": 0,
+    "rKDYJt9gee8dGVadu6kb3vdBVTdiQRbcHP": 0,
+    "rMm27Xh1JzGL4evVS1ZB1H25JpJapodSL1": 0
   }
 }
