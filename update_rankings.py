@@ -11,7 +11,7 @@ JSON_RPC_URL = "https://s1.ripple.com:51234/"
 client = JsonRpcClient(JSON_RPC_URL)
 
 # PFT token issuer address
-PFT_ISSUER = "r4yc85M1hwsegVGZ1pawpZPwj65SVs8PzD"
+PFT_ISSUER = "rnQUEEg8yyjrwk9FhyXpKavHyCRJM9BDMW"
 
 # File to store balance history
 BALANCE_HISTORY_FILE = 'balance_history.json'
