@@ -147,6 +147,9 @@ def format_discord_message(balances, balance_history):
     # Get PFT issued based on Rembrancer balance change
     recent_issuance = get_rembrancer_balance_change()
     
+    # Get current Remembrancer balance
+    remembrancer_balance = get_pft_balance(REMBRANCER_ADDRESS)
+    
     # Load previous balances
     previous_balances = load_previous_balances()
     previous_total = previous_balances['total_balance']
@@ -181,6 +184,9 @@ def format_discord_message(balances, balance_history):
     # Add percentage of new issuance
     if previous_total > 0:
         message += f"📈 Percentage of New Issuance: {issuance_percentage:.1f}%\n"
+    
+    # Add Remembrancer PFT Balance
+    message += f"💰 Remembrancer PFT Balance: {remembrancer_balance:,.2f}\n"
     
     message += "\n"
     
