@@ -184,8 +184,13 @@ def format_discord_message(balances, balance_history):
     
     message += "\n"
     
-    # Add all holders (no limit)
-    for i, balance in enumerate(balances, 1):
+    # Add all holders (no limit), excluding Rembrancer
+    i = 1
+    for balance in balances:
+        # Skip Rembrancer address
+        if balance['address'] == REMBRANCER_ADDRESS:
+            continue
+            
         nickname = balance['nickname'] or 'Anonymous'
         address = balance['address']
         amount = f"{balance['balance']:,.2f}"
@@ -195,6 +200,7 @@ def format_discord_message(balances, balance_history):
         change_indicator = format_balance_change(balance['balance'], prev_balance)
         
         message += f"{i}. **{nickname}** (`{address[:6]}...{address[-4:]}`) - {amount} PFT {change_indicator}\n"
+        i += 1
     
     return {
         "content": message,
