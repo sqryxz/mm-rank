@@ -79,6 +79,10 @@
     {
       "timestamp": "2025-04-21T02:42:17.436837+00:00",
       "balance": 0
+    },
+    {
+      "timestamp": "2025-04-21T13:30:48.079300+00:00",
+      "balance": 206334.0
     }
   ],
   "rNTuZK66KQfWiwwBucvjXsonf5iD1BQJyH": [
@@ -161,6 +165,10 @@
     {
       "timestamp": "2025-04-21T02:42:17.436837+00:00",
       "balance": 0
+    },
+    {
+      "timestamp": "2025-04-21T13:30:48.079300+00:00",
+      "balance": 86873.0
     }
   ],
   "rMh3gsTKvLEpiucuxdkTybGE6A2tv9CLHE": [
@@ -243,6 +251,10 @@
     {
       "timestamp": "2025-04-21T02:42:17.436837+00:00",
       "balance": 0
+    },
+    {
+      "timestamp": "2025-04-21T13:30:48.079300+00:00",
+      "balance": 69114.0
     }
   ],
   "rLvH7pxCCee7kFJo2Cn6NQy8GS33RHXk3U": [
@@ -325,6 +337,10 @@
     {
       "timestamp": "2025-04-21T02:42:17.436837+00:00",
       "balance": 0
+    },
+    {
+      "timestamp": "2025-04-21T13:30:48.079300+00:00",
+      "balance": 62246.0
     }
   ],
   "rs1yY1qVJ4ddvPXQs86EYW1HC3QdWu7NFo": [
@@ -407,6 +423,10 @@
     {
       "timestamp": "2025-04-21T02:42:17.436837+00:00",
       "balance": 0
+    },
+    {
+      "timestamp": "2025-04-21T13:30:48.079300+00:00",
+      "balance": 76643.0
     }
   ],
   "rwonaUde5Vaa8mqnhqEgA29gcCfrv7qS9p": [
@@ -489,6 +509,10 @@
     {
       "timestamp": "2025-04-21T02:42:17.436837+00:00",
       "balance": 0
+    },
+    {
+      "timestamp": "2025-04-21T13:30:48.079300+00:00",
+      "balance": 50964.0
     }
   ],
   "rpo5tVeCqigav9ZBpmPvYWeSBExSbYAK3c": [
@@ -571,6 +595,10 @@
     {
       "timestamp": "2025-04-21T02:42:17.436837+00:00",
       "balance": 0
+    },
+    {
+      "timestamp": "2025-04-21T13:30:48.079300+00:00",
+      "balance": 32382.0
     }
   ],
   "rPWD8aoBvP55T6mPSwxSPC52J2eN14PoHe": [
@@ -653,6 +681,10 @@
     {
       "timestamp": "2025-04-21T02:42:17.436837+00:00",
       "balance": 0
+    },
+    {
+      "timestamp": "2025-04-21T13:30:48.079300+00:00",
+      "balance": 29307.0
     }
   ],
   "rGVzFTK1H9iNo3C2MDyx6M6K4tfs4PocPA": [
@@ -735,6 +767,10 @@
     {
       "timestamp": "2025-04-21T02:42:17.436837+00:00",
       "balance": 0
+    },
+    {
+      "timestamp": "2025-04-21T13:30:48.079300+00:00",
+      "balance": 35877.0
     }
   ],
   "rKDYJt9gee8dGVadu6kb3vdBVTdiQRbcHP": [
@@ -817,6 +853,10 @@
     {
       "timestamp": "2025-04-21T02:42:17.436837+00:00",
       "balance": 0
+    },
+    {
+      "timestamp": "2025-04-21T13:30:48.079300+00:00",
+      "balance": 21039.0
     }
   ],
   "issuer": [
@@ -881,6 +921,10 @@
     {
       "timestamp": "2025-04-21T02:42:17.436837+00:00",
       "balance": 0
+    },
+    {
+      "timestamp": "2025-04-21T13:30:48.079300+00:00",
+      "balance": 59384.0
     }
   ]
 }
