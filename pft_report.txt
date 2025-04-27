@@ -1,12 +1,12 @@
 # PFT Issuance Report
 
-Report generated at: 2025-04-27 02:41:58 UTC
+Report generated at: 2025-04-27 13:26:40 UTC
 
-Period: 2025-04-26 02:41:57 to 2025-04-27 02:41:58
+Period: 2025-04-26 13:26:40 to 2025-04-27 13:26:40
 
 ## Summary
 Total PFT Issued (this period): 0.00 PFT
-Total PFT Issued (all time in fetch window): 18,225.00 PFT
+Total PFT Issued (all time in fetch window): 13,685.00 PFT
 
 Number of Transactions (this period): 0
 
