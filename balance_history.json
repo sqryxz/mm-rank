@@ -57,6 +57,21 @@
     {
       "timestamp": "2025-04-30T18:56:21.333929+00:00",
       "balance": 27038.0
+<<<<<<< HEAD
+=======
+    }
+  ],
+  "rMm27Xh1JzGL4evVS1ZB1H25JpJapodSL1": [
+    {
+      "timestamp": "2025-04-30T18:56:21.333929+00:00",
+      "balance": 62601.0
+    }
+  ],
+  "r4yc85M1hwsegVGZ1pawpZPwj65SVs8PzD": [
+    {
+      "timestamp": "2025-04-30T18:56:21.333929+00:00",
+      "balance": 1208425.99949
+>>>>>>> HEAD@{1}
     }
   ],
   "issuer": [
@@ -84,6 +99,7 @@
       "timestamp": "2025-04-18T04:38:23.379517+00:00",
       "total_issued": 99999999889.0
     }
+<<<<<<< HEAD
   ],
   "rMm27Xh1JzGL4evVS1ZB1H25JpJapodSL1": [
     {
@@ -96,5 +112,7 @@
       "timestamp": "2025-04-30T18:56:21.333929+00:00",
       "balance": 1208425.99949
     }
+=======
+>>>>>>> HEAD@{1}
   ]
 }
