@@ -8,6 +8,7 @@ from pft_data import save_issuance_data
 class PFTTracker:
     def __init__(self):
         self.issuer_address = "rnQUEEg8yyjrwk9FhyXpKavHyCRJM9BDMW"
+        self.rembrancer_address = "r4yc85M1hwsegVGZ1pawpZPwj65SVs8PzD"
         self.api_url = "https://s1.ripple.com:51234/"
         self.last_check_time = None
         self.load_last_check_time()
@@ -25,69 +26,75 @@ class PFTTracker:
         with open('last_check.json', 'w') as f:
             json.dump({'last_check_time': int(time.time())}, f)
 
-    def get_transactions(self):
-        payload = {
-            "method": "account_tx",
-            "params": [{
-                "account": self.issuer_address,
-                "binary": False,
-                "forward": False,
-                "ledger_index_min": -1,
-                "ledger_index_max": -1,
-                "limit": 200  # Increased limit to catch more transactions
-            }]
-        }
-
+    def get_pft_balance(self, address):
         try:
+            payload = {
+                "method": "account_lines",
+                "params": [{
+                    "account": address,
+                    "peer": self.issuer_address,
+                    "ledger_index": "validated"
+                }]
+            }
+            
             response = requests.post(self.api_url, json=payload)
             response.raise_for_status()
-            return response.json()
-        except requests.exceptions.RequestException as e:
-            print(f"Error fetching transactions: {e}")
-            return None
+            result = response.json()
+            
+            if "result" in result and "lines" in result["result"]:
+                for line in result["result"]["lines"]:
+                    if line.get("account") == self.issuer_address and line.get("currency") == "PFT":
+                        return float(line.get("balance", "0"))
+            return 0
+        except Exception as e:
+            print(f"Error getting balance for {address}: {str(e)}")
+            return 0
 
     def analyze_issuance(self):
-        tx_data = self.get_transactions()
-        if not tx_data:
-            return None
-
-        total_issuance = 0
-        transactions = []
-        all_time_issuance = 0
-
-        for tx in tx_data.get('result', {}).get('transactions', []):
-            tx_type = tx.get('tx', {}).get('TransactionType')
-            timestamp = tx.get('tx', {}).get('date')
+        try:
+            # Get current balance
+            current_balance = self.get_pft_balance(self.rembrancer_address)
             
-            if tx_type == "Payment":
-                amount = tx.get('tx', {}).get('Amount', {})
-                if isinstance(amount, dict) and amount.get('currency') == "PFT":
-                    value = float(amount.get('value', 0))
-                    destination = tx.get('tx', {}).get('Destination', 'Unknown')
-                    all_time_issuance += value
-                    
-                    if timestamp > self.last_check_time:
-                        total_issuance += value
-                        transactions.append({
-                            'hash': tx['tx']['hash'],
-                            'amount': value,
-                            'destination': destination,
-                            'timestamp': timestamp
-                        })
+            # Load balance history
+            try:
+                with open('balance_history.json', 'r') as f:
+                    balance_history = json.load(f)
+            except (FileNotFoundError, json.JSONDecodeError):
+                balance_history = {}
+            
+            rembrancer_history = balance_history.get(self.rembrancer_address, [])
+            
+            if not rembrancer_history:
+                print(f"No history found for Rembrancer address, using current balance: {current_balance}")
+                total_issuance = abs(current_balance)
+            else:
+                # Get the earliest balance in our history
+                earliest_balance = rembrancer_history[0]['balance']
+                
+                # Calculate the change
+                total_issuance = abs(current_balance - earliest_balance)
+                
+                print(f"Rembrancer current balance: {current_balance}")
+                print(f"Rembrancer earliest recorded balance: {earliest_balance}")
+                print(f"Total PFT issued (based on Rembrancer balance change): {total_issuance}")
 
-        # Save the all-time issuance data for the leaderboard
-        save_issuance_data(all_time_issuance)
+            # Save the issuance data
+            save_issuance_data(total_issuance)
 
-        report = {
-            'total_issuance': total_issuance,
-            'all_time_issuance': all_time_issuance,
-            'transactions': transactions,
-            'from_time': self.last_check_time,
-            'to_time': int(time.time())
-        }
+            report = {
+                'total_issuance': total_issuance,
+                'all_time_issuance': total_issuance,
+                'transactions': [],
+                'from_time': self.last_check_time,
+                'to_time': int(time.time())
+            }
 
-        self.save_last_check_time()
-        return report
+            self.save_last_check_time()
+            return report
+            
+        except Exception as e:
+            print(f"Error analyzing issuance: {str(e)}")
+            return None
 
 def format_report(report):
     output = []
