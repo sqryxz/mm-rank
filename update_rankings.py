@@ -94,14 +94,14 @@ def get_rembrancer_balance_change():
         # Get the earliest balance in our history
         earliest_balance = rembrancer_history[0]['balance']
         
-        # Calculate the change
-        balance_change = current_balance - earliest_balance
+        # Calculate the change (negative value indicates decrease)
+        balance_change = earliest_balance - current_balance
         
         print(f"Rembrancer current balance: {current_balance}")
         print(f"Rembrancer earliest recorded balance: {earliest_balance}")
-        print(f"Total PFT issued (based on Rembrancer balance change): {balance_change}")
+        print(f"Total PFT issued (based on Rembrancer balance decrease): {abs(balance_change)}")
         
-        # Return absolute value of balance change
+        # Return absolute value of balance decrease
         return abs(balance_change)
         
     except Exception as e:
