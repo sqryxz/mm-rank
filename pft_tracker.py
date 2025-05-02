@@ -68,14 +68,14 @@ class PFTTracker:
                 print(f"No history found for Rembrancer address, using current balance: {current_balance}")
                 total_issuance = abs(current_balance)
             else:
-                # Get the earliest balance in our history
-                earliest_balance = rembrancer_history[0]['balance']
+                # Get the previous balance in our history
+                previous_balance = rembrancer_history[-1]['balance']
                 
-                # Calculate the change
-                total_issuance = abs(current_balance - earliest_balance)
+                # Calculate the change (previous balance - current balance)
+                total_issuance = abs(previous_balance - current_balance)
                 
                 print(f"Rembrancer current balance: {current_balance}")
-                print(f"Rembrancer earliest recorded balance: {earliest_balance}")
+                print(f"Rembrancer previous balance: {previous_balance}")
                 print(f"Total PFT issued (based on Rembrancer balance change): {total_issuance}")
 
             # Save the issuance data
