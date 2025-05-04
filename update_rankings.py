@@ -262,5 +262,17 @@ def main():
         "balances": {b['address']: b['balance'] for b in current_balances}
     })
 
+    # Send message to Discord
+    webhook_url = os.environ.get('DISCORD_WEBHOOK_URL')
+    if webhook_url:
+        try:
+            response = requests.post(webhook_url, json=message_payload)
+            response.raise_for_status() # Raise an exception for bad status codes (4xx or 5xx)
+            print("Successfully sent message to Discord.")
+        except requests.exceptions.RequestException as e:
+            print(f"Error sending message to Discord: {e}")
+    else:
+        print("DISCORD_WEBHOOK_URL environment variable not set. Skipping Discord notification.")
+
 if __name__ == '__main__':
     main() 
