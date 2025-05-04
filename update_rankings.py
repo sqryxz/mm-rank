@@ -142,43 +142,43 @@ def format_discord_message(balances, balance_history):
     current_time = datetime.now(timezone.utc)
     current_time_str = current_time.strftime("%Y-%m-%d %H:%M UTC")
     
-    # Get PFT issued based on Rembrancer balance change
-    recent_issuance = get_rembrancer_balance_change()
+    # Load PFT issued during the most recent period (calculated by pft_tracker.py)
+    period_issuance = load_issuance_data() 
     
     # Get current Remembrancer balance
     remembrancer_balance = get_pft_balance(REMBRANCER_ADDRESS)
     
-    # Load previous balances
+    # Load previous total balance for comparison
     previous_balances = load_previous_balances()
-    previous_total = previous_balances['total_balance']
+    previous_total = previous_balances['total_balance'] # Note: This previous_total is likely outdated if script runs frequently. Consider using total_previous_run for comparison.
     
-    # Calculate current total (excluding Remembrancer)
+    # Calculate current total (excluding Remembrancer) using the passed balances
     total_current = sum(b['balance'] for b in balances if b['address'] != REMBRANCER_ADDRESS)
+    # Calculate the total from the *previous run* using history
     total_previous_run = sum(get_previous_run_balance(b['address'], balance_history) for b in balances if b['address'] != REMBRANCER_ADDRESS)
     
-    # Calculate balance changes since last update
-    balance_increase = total_current - previous_total if previous_total > 0 else 0
-    balance_increase_percentage = (balance_increase / previous_total * 100) if previous_total > 0 else 0
-    
-    # Calculate percentage of balance increase relative to new issuance
-    change_in_total_held = total_current - total_previous_run if total_previous_run > 0 else 0
-    issuance_percentage = (change_in_total_held / recent_issuance * 100) if recent_issuance > 0 else 0
+    # Calculate balance changes since last actual run (using history)
+    change_in_total_held = total_current - total_previous_run
+    # Calculate percentage relative to the recent period's issuance
+    issuance_percentage = (change_in_total_held / period_issuance * 100) if period_issuance > 0 else 0
     
     # Create the message content
     message = f"🏆 **PFT Holdings Leaderboard** - {current_time_str}\n\n"
     
-    # Add issuance information
-    message += f"🔄 **PFT Issued**: {recent_issuance:,.2f}\n"
+    # Add issuance information for the recent period
+    # Using "PFT Issued (Recent)" for clarity, change if needed
+    message += f"🔄 **PFT Issued (Recent)**: {period_issuance:,.2f}\n" 
     message += f"📊 **Total PFT Held**: {total_current:,.2f}"
     
-    # Add total holdings change
-    if total_previous_run > 0:
+    # Add total holdings change based on previous run
+    if total_previous_run != 0: # Compare against previous run's total
         total_change = format_balance_change(total_current, total_previous_run)
         message += f" {total_change}"
     message += "\n"
     
-    # Add percentage of new issuance
-    if previous_total > 0:
+    # Add percentage of new issuance (relative to the period's issuance)
+    # Only show if there was actual issuance this period
+    if period_issuance > 0:
         message += f"📈 Percentage of New Issuance: {issuance_percentage:.1f}%\n"
     
     # Add Remembrancer PFT Balance
@@ -186,9 +186,9 @@ def format_discord_message(balances, balance_history):
     
     message += "\n"
     
-    # Add all holders (no limit), excluding Rembrancer
+    # Add all holders (no limit), excluding Remembrancer
     i = 1
-    for balance in balances:
+    for balance in balances: # Use the passed 'balances' list
         # Skip Rembrancer address
         if balance['address'] == REMBRANCER_ADDRESS:
             continue
@@ -197,7 +197,7 @@ def format_discord_message(balances, balance_history):
         address = balance['address']
         amount = f"{balance['balance']:,.2f}"
         
-        # Calculate change indicator using previous run balance
+        # Calculate change indicator using previous run balance from history
         prev_balance = get_previous_run_balance(address, balance_history)
         change_indicator = format_balance_change(balance['balance'], prev_balance)
         
@@ -214,15 +214,15 @@ def main():
     # Load tracked addresses and balance history
     tracked_addresses = load_data()
     balance_history = load_balance_history()
-    current_time = datetime.now(timezone.utc).isoformat()
+    current_time = datetime.now(timezone.utc)
     
     # Get current balances
-    balances = []
+    current_balances = [] # Renamed to avoid confusion with the parameter name in format_discord_message
     
     # Update balance history for tracked addresses
     for address, info in tracked_addresses.items():
         balance = get_pft_balance(address)
-        balances.append({
+        current_balances.append({
             'address': address,
             'nickname': info.get('nickname', ''),
             'balance': balance
@@ -233,47 +233,34 @@ def main():
             balance_history[address] = []
         
         balance_history[address].append({
-            'timestamp': current_time,
+            'timestamp': current_time.isoformat(),
             'balance': balance
         })
         
         # Keep only last 7 days of history
-        cutoff_time = (datetime.now(timezone.utc) - timedelta(days=7)).isoformat()
+        cutoff_time = (current_time - timedelta(days=7)).isoformat()
         balance_history[address] = [
             entry for entry in balance_history[address]
             if entry['timestamp'] >= cutoff_time
         ]
     
     # Sort by balance
-    balances.sort(key=lambda x: x['balance'], reverse=True)
+    current_balances.sort(key=lambda x: x['balance'], reverse=True)
     
-    # Format message
-    message = format_discord_message(balances, balance_history)
+    # Format message using the fetched current balances and updated history
+    message_payload = format_discord_message(current_balances, balance_history)
     
-    # Get Discord webhook URL from environment variable
-    webhook_url = os.getenv('DISCORD_WEBHOOK_URL')
-    
-    # If webhook URL exists, send to Discord
-    if webhook_url:
-        response = requests.post(webhook_url, json=message)
-        if response.status_code != 204:
-            raise Exception(f"Failed to send Discord message: {response.status_code}")
-        print("Successfully updated rankings and sent Discord notification")
-    else:
-        # If no webhook URL, print to console
-        print("\nRankings Report (Console Output):")
-        print(message['content'])
-    
-    # Save updated balance history
+    # Save the updated balance history
     save_balance_history(balance_history)
     
-    # Save current balances as previous balances for next update
-    previous_balances = {
-        "last_update": current_time,
-        "total_balance": sum(b['balance'] for b in balances),
-        "balances": {b['address']: b['balance'] for b in balances}
-    }
-    save_previous_balances(previous_balances)
+    # Save current balances as previous for next run comparison
+    # Store the total *excluding* remembrancer for consistent comparison with leaderboard total
+    current_total_excluding_rembrancer = sum(b['balance'] for b in current_balances if b['address'] != REMBRANCER_ADDRESS)
+    save_previous_balances({
+        "last_update": current_time.isoformat(),
+        "total_balance": current_total_excluding_rembrancer, # Save the correct total
+        "balances": {b['address']: b['balance'] for b in current_balances}
+    })
 
 if __name__ == '__main__':
     main() 
