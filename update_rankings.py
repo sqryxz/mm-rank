@@ -141,69 +141,90 @@ def format_balance_change(current, previous):
 def format_discord_message(balances, balance_history):
     current_time = datetime.now(timezone.utc)
     current_time_str = current_time.strftime("%Y-%m-%d %H:%M UTC")
-    
+
+    # Nerf values for specific addresses
+    NERF_AMOUNTS = {
+        "rPLpK9KKmjYzPQ8Faem7BRwfpQfCe9zrHS": 233545,   # wizbubba
+        "rNTuZK66KQfWiwwBucvjXsonf5iD1BQJyH": 101412,   # hitori*
+        "rs1yY1qVJ4ddvPXQs86EYW1HC3QdWu7NFo": 95607,    # perry
+        "rMh3gsTKvLEpiucuxdkTybGE6A2tv9CLHE": 78814,    # nigel
+        "rLvH7pxCCee7kFJo2Cn6NQy8GS33RHXk3U": 71924,    # btseal
+        "rwonaUde5Vaa8mqnhqEgA29gcCfrv7qS9p": 63815,    # jolly*
+        "rMm27Xh1JzGL4evVS1ZB1H25JpJapodSL1": 62601,    # lc66*
+        "rGVzFTK1H9iNo3C2MDyx6M6K4tfs4PocPA": 39719,    # meech*
+        "rpo5tVeCqigav9ZBpmPvYWeSBExSbYAK3c": 34789,    # snakespartan*
+        "rPWD8aoBvP55T6mPSwxSPC52J2eN14PoHe": 31741,    # wilson
+        "rKDYJt9gee8dGVadu6kb3vdBVTdiQRbcHP": 27038,    # russolini
+    }
+
+    # Apply nerf to balances for display only
+    nerfed_balances = []
+    for b in balances:
+        nerfed_balance = b['balance']
+        if b['address'] in NERF_AMOUNTS:
+            nerfed_balance = max(0, nerfed_balance - NERF_AMOUNTS[b['address']])
+        nerfed_balances.append({
+            'address': b['address'],
+            'nickname': b['nickname'],
+            'balance': nerfed_balance
+        })
+
     # Load PFT issued during the most recent period (calculated by pft_tracker.py)
     period_issuance = load_issuance_data() 
-    
+
     # Get current Remembrancer balance
     remembrancer_balance = get_pft_balance(REMBRANCER_ADDRESS)
-    
+
     # Load previous total balance for comparison
     previous_balances = load_previous_balances()
-    previous_total = previous_balances['total_balance'] # Note: This previous_total is likely outdated if script runs frequently. Consider using total_previous_run for comparison.
-    
-    # Calculate current total (excluding Remembrancer) using the passed balances
-    total_current = sum(b['balance'] for b in balances if b['address'] != REMBRANCER_ADDRESS)
-    # Calculate the total from the *previous run* using history
-    total_previous_run = sum(get_previous_run_balance(b['address'], balance_history) for b in balances if b['address'] != REMBRANCER_ADDRESS)
-    
+    previous_total = previous_balances['total_balance']
+
+    # Calculate current total (excluding Remembrancer) using the nerfed balances
+    total_current = sum(b['balance'] for b in nerfed_balances if b['address'] != REMBRANCER_ADDRESS)
+    # Calculate the total from the *previous run* using history (apply nerf to previous run as well)
+    total_previous_run = sum(
+        max(0, get_previous_run_balance(b['address'], balance_history) - NERF_AMOUNTS.get(b['address'], 0))
+        for b in balances if b['address'] != REMBRANCER_ADDRESS
+    )
+
     # Calculate balance changes since last actual run (using history)
     change_in_total_held = total_current - total_previous_run
     # Calculate percentage relative to the recent period's issuance
     issuance_percentage = (change_in_total_held / period_issuance * 100) if period_issuance > 0 else 0
-    
+
     # Create the message content
-    message = f"🏆 **PFT Holdings Leaderboard** - {current_time_str}\n\n"
-    
+    message = f"🏆 **PFT Holdings Leaderboard - Post Nerf** - {current_time_str}\n\n"
+
     # Add issuance information for the recent period
-    # Using "PFT Issued (Recent)" for clarity, change if needed
-    message += f"🔄 **PFT Issued (Recent)**: {period_issuance:,.2f}\n" 
+    message += f"🔄 **PFT Issued (Recent)**: {period_issuance:,.2f}\n"
     message += f"📊 **Total PFT Held**: {total_current:,.2f}"
-    
+
     # Add total holdings change based on previous run
-    if total_previous_run != 0: # Compare against previous run's total
+    if total_previous_run != 0:
         total_change = format_balance_change(total_current, total_previous_run)
         message += f" {total_change}"
     message += "\n"
-    
-    # Add percentage of new issuance (relative to the period's issuance)
-    # Only show if there was actual issuance this period
+
     if period_issuance > 0:
         message += f"📈 Percentage of New Issuance: {issuance_percentage:.1f}%\n"
-    
-    # Add Remembrancer PFT Balance
+
     message += f"💰 Remembrancer PFT Balance: {remembrancer_balance:,.2f}\n"
-    
     message += "\n"
-    
+
     # Add all holders (no limit), excluding Remembrancer
     i = 1
-    for balance in balances: # Use the passed 'balances' list
-        # Skip Rembrancer address
-        if balance['address'] == REMBRANCER_ADDRESS:
+    for b, orig_b in zip(nerfed_balances, balances):
+        if b['address'] == REMBRANCER_ADDRESS:
             continue
-            
-        nickname = balance['nickname'] or 'Anonymous'
-        address = balance['address']
-        amount = f"{balance['balance']:,.2f}"
-        
-        # Calculate change indicator using previous run balance from history
-        prev_balance = get_previous_run_balance(address, balance_history)
-        change_indicator = format_balance_change(balance['balance'], prev_balance)
-        
+        nickname = b['nickname'] or 'Anonymous'
+        address = b['address']
+        amount = f"{b['balance']:,.2f}"
+        # Calculate change indicator using nerfed previous run balance
+        prev_balance = max(0, get_previous_run_balance(address, balance_history) - NERF_AMOUNTS.get(address, 0))
+        change_indicator = format_balance_change(b['balance'], prev_balance)
         message += f"{i}. **{nickname}** (`{address[:6]}...{address[-4:]}`) - {amount} PFT {change_indicator}\n"
         i += 1
-    
+
     return {
         "content": message,
         "username": "PFT Tracker",
@@ -249,7 +270,7 @@ def main():
     
     # Format message using the fetched current balances and updated history
     message_payload = format_discord_message(current_balances, balance_history)
-    
+
     # Save the updated balance history
     save_balance_history(balance_history)
     
