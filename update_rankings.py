@@ -169,6 +169,9 @@ def format_discord_message(balances, balance_history):
             'balance': nerfed_balance
         })
 
+    # Sort nerfed_balances by balance descending (most to least)
+    nerfed_balances.sort(key=lambda x: x['balance'], reverse=True)
+
     # Load PFT issued during the most recent period (calculated by pft_tracker.py)
     period_issuance = load_issuance_data() 
 
