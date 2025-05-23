@@ -1,15 +1,15 @@
-Rembrancer current balance: 1187697.99949
-Rembrancer previous balance: 1187798.99949
-Total PFT issued (based on Rembrancer balance change): 101.0
+Rembrancer current balance: 1187611.99949
+Rembrancer previous balance: 1187697.99949
+Total PFT issued (based on Rembrancer balance change): 86.0
 # PFT Issuance Report
 
-Report generated at: 2025-05-22 13:34:52 UTC
+Report generated at: 2025-05-23 02:43:24 UTC
 
-Period: 2025-05-21 13:34:52 to 2025-05-22 13:34:52
+Period: 2025-05-22 02:43:24 to 2025-05-23 02:43:24
 
 ## Summary
-Total PFT Issued (this period): 101.00 PFT
-Total PFT Issued (all time in fetch window): 101.00 PFT
+Total PFT Issued (this period): 86.00 PFT
+Total PFT Issued (all time in fetch window): 86.00 PFT
 
 Number of Transactions (this period): 0
 
