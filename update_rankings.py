@@ -155,6 +155,7 @@ def format_discord_message(balances, balance_history):
         "rpo5tVeCqigav9ZBpmPvYWeSBExSbYAK3c": 34789,    # snakespartan*
         "rPWD8aoBvP55T6mPSwxSPC52J2eN14PoHe": 31741,    # wilson
         "rKDYJt9gee8dGVadu6kb3vdBVTdiQRbcHP": 27038,    # russolini
+        "rP9pHreQxprisy6Bh4Amrewf14FTwRBnp9": 9649,    # whiteguy
     }
 
     # Apply nerf to balances for display only
