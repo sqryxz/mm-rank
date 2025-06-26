@@ -144,18 +144,18 @@ def format_discord_message(balances, balance_history):
 
     # Nerf values for specific addresses
     NERF_AMOUNTS = {
-        "rPLpK9KKmjYzPQ8Faem7BRwfpQfCe9zrHS": 233545,   # wizbubba
-        "rNTuZK66KQfWiwwBucvjXsonf5iD1BQJyH": 101412,   # hitori*
-        "rs1yY1qVJ4ddvPXQs86EYW1HC3QdWu7NFo": 95607,    # perry
-        "rMh3gsTKvLEpiucuxdkTybGE6A2tv9CLHE": 78814,    # nigel
-        "rLvH7pxCCee7kFJo2Cn6NQy8GS33RHXk3U": 71924,    # btseal
-        "rwonaUde5Vaa8mqnhqEgA29gcCfrv7qS9p": 63815,    # jolly*
-        "rMm27Xh1JzGL4evVS1ZB1H25JpJapodSL1": 62601,    # lc66*
-        "rGVzFTK1H9iNo3C2MDyx6M6K4tfs4PocPA": 39719,    # meech*
-        "rpo5tVeCqigav9ZBpmPvYWeSBExSbYAK3c": 34789,    # snakespartan*
-        "rPWD8aoBvP55T6mPSwxSPC52J2eN14PoHe": 31741,    # wilson
-        "rKDYJt9gee8dGVadu6kb3vdBVTdiQRbcHP": 27038,    # russolini
-        "rP9pHreQxprisy6Bh4Amrewf14FTwRBnp9": 9649,    # whiteguy
+        "rPLpK9KKmjYzPQ8Faem7BRwfpQfCe9zrHS": 234761.05,   # wizbubba (233545 + 1216.05)
+        "rNTuZK66KQfWiwwBucvjXsonf5iD1BQJyH": 101640,   # hitori* (101412 + 228.00)
+        "rs1yY1qVJ4ddvPXQs86EYW1HC3QdWu7NFo": 96066,    # perry (95607 + 459.00)
+        "rMh3gsTKvLEpiucuxdkTybGE6A2tv9CLHE": 79163,    # nigel (78814 + 349.00)
+        "rLvH7pxCCee7kFJo2Cn6NQy8GS33RHXk3U": 72255,    # btseal (71924 + 331.00)
+        "rwonaUde5Vaa8mqnhqEgA29gcCfrv7qS9p": 63985,    # jolly* (63815 + 170.00)
+        "rMm27Xh1JzGL4evVS1ZB1H25JpJapodSL1": 62619,    # lc66* (62601 + 18.00)
+        "rGVzFTK1H9iNo3C2MDyx6M6K4tfs4PocPA": 39785,    # meech* (39719 + 66.00)
+        "rpo5tVeCqigav9ZBpmPvYWeSBExSbYAK3c": 34823,    # snakespartan* (34789 + 34.00)
+        "rPWD8aoBvP55T6mPSwxSPC52J2eN14PoHe": 31944.10,    # wilson (31741 + 203.10)
+        "rKDYJt9gee8dGVadu6kb3vdBVTdiQRbcHP": 27113,    # russolini (27038 + 75.00)
+        "rP9pHreQxprisy6Bh4Amrewf14FTwRBnp9": 9781,    # whiteguy (9649 + 132.00)
     }
 
     # Apply nerf to balances for display only
