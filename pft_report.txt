@@ -3,9 +3,9 @@ Rembrancer previous balance: 1201607.18989
 Total PFT issued (based on Rembrancer balance change): 0.0
 # PFT Issuance Report
 
-Report generated at: 2025-11-23 13:27:00 UTC
+Report generated at: 2025-11-24 02:54:11 UTC
 
-Period: 2025-11-22 13:26:55 to 2025-11-23 13:27:00
+Period: 2025-11-23 02:54:11 to 2025-11-24 02:54:11
 
 ## Summary
 Total PFT Issued (this period): 0.00 PFT
